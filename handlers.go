@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,9 +19,13 @@ func healthHandler(w http.ResponseWriter, r *http.Request) {
 
 func createPasteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var req struct{
-		Content string `json:"content"`
-	}
+	var req struct {
+    Title     string     `json:"title"`
+    Content   string     `json:"content"`
+    Language  string     `json:"language"`
+    ExpiresAt *time.Time `json:"expires_at"`
+    IsPublic  bool       `json:"is_public"`
+}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err!=nil{
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -32,11 +37,33 @@ func createPasteHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shortCode := generateID(6)
-	if Paste.IsPublic == false{
-		privateKey := generateID(16)
-	}else{
-		publickey := shortCode
+	
+	shortID := generateID(6)
+	privatekey := ""
+	if !req.IsPublic{
+		privatekey = generateID(16)
 	}
+
+	result := Paste{
+		Title: req.Title,
+		Content: req.Content,
+		Language: req.Language,
+		Views: 0,
+		CreatedAt:time.Now(),
+		ExpiresAt: req.ExpiresAt,
+		IsPublic:req.IsPublic ,
+		PrivateKey: privatekey,
+		ShortID: shortID,
+
+	}
+
+	mu.Lock()
+	pasteStore[shortID]= result
+	mu.Unlock()
+
+		
+	
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(result)
 
 }
