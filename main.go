@@ -25,8 +25,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-
-	
-	mux.HandleFunc("GET    /pastes     ", pasteHandler)
-	mux.HandleFunc("GET    /pastes/{id}", pasteHandler)
-	mux.HandleFunc("DELETE /pastes/{id}", pasteHandler)
