@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -125,4 +126,20 @@ func deletePasteHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"message": "paste deleted"})
+}
+
+
+func publicPastes(w http.ResponseWriter, r *http.Request){
+	var paste = []Paste{}
+	mu.RLock()
+	for _, pastes := range pasteStore{
+		mu.RUnlock()
+		if !pastes.IsPublic{
+			continue
+		}
+		paste = append(paste, pastes)
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(paste)
+
 }
