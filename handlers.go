@@ -129,17 +129,19 @@ func deletePasteHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func publicPastes(w http.ResponseWriter, r *http.Request){
-	var paste = []Paste{}
+func publicPastes(w http.ResponseWriter, r *http.Request) {
+	var pastes []Paste
+
 	mu.RLock()
-	for _, pastes := range pasteStore{
-		mu.RUnlock()
-		if !pastes.IsPublic{
+	for _, paste := range pasteStore {
+		if !paste.IsPublic {
 			continue
 		}
-		paste = append(paste, pastes)
+		pastes = append(pastes, paste)
 	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(paste)
+	mu.RUnlock()
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(pastes)
 }
