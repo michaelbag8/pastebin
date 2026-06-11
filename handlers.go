@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -66,4 +68,40 @@ func createPasteHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(result)
 
+}
+
+
+func getPasteHandler(w http.ResponseWriter, r *http.Request){
+	id := r.PathValue("id")
+	
+		var req struct {
+    Title     string     `json:"title"`
+    Content   string     `json:"content"`
+    Language  string     `json:"language"`
+    ExpiresAt *time.Time `json:"expires_at"`
+    IsPublic  bool       `json:"is_public"`
+}
+	
+check, ok := pasteStore[id]
+if !ok{
+	http.Error(w, "not found", http.StatusNotFound)
+	return
+}
+result := Paste{
+		Title: req.Title,
+		Content: req.Content,
+		Language: req.Language,
+		Views: 0,
+		CreatedAt:time.Now(),
+		ExpiresAt: req.ExpiresAt,
+		IsPublic:req.IsPublic ,
+		PrivateKey: privatekey,
+		ShortID: shortID,
+
+	}
+
+	if req.ExpiresAt == nil{
+		http.Error(w, "Gone", http.StatusGone)
+		return
+	}
 }
