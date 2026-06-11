@@ -19,6 +19,7 @@ func main() {
 	mux.HandleFunc("POST /pastes", createPasteHandler)
 	mux.HandleFunc("GET /pastes/{id}", getPasteHandler)
 	mux.HandleFunc("DELETE /pastes/{id}", deletePasteHandler)
+	mux.HandleFunc("GET /pastes", publicPastes)
 
 	fmt.Println("Server starting on port 8080...")
 

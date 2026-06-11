@@ -60,7 +60,10 @@ func createPasteHandler(w http.ResponseWriter, r *http.Request) {
 	mu.Unlock()
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(result)
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
 
 }
 
@@ -92,6 +95,7 @@ func getPasteHandler(w http.ResponseWriter, r *http.Request) {
 	pasteStore[id] = paste
 	mu.Unlock()
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(paste)
 }
@@ -127,9 +131,8 @@ func deletePasteHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"message": "paste deleted"})
 }
 
-
 func publicPastes(w http.ResponseWriter, r *http.Request) {
-	var pastes []Paste
+	pastes := []Paste{}
 
 	mu.RLock()
 	for _, paste := range pasteStore {
